@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-from as501_modules import load_hex_file_to_tensor
+from as501_modules import load_hex_file_to_tensor, hex_to_int
 
 
 class MLP(nn.Module):
@@ -43,26 +43,51 @@ def read_parameter():
     bias_dict['fc3'] = load_hex_file_to_tensor('parameter/bias3.txt')
     return weight_dict, bias_dict
 
+def check_accuracy(output_list, label_list):
+    correct = 0
+    for i in range(len(output_list)):
+        if output_list[i] == label_list[i]:
+            correct += 1
+    return correct
+
 
 def main():
     model = MLP()
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
     weight_dict, bias_dict = read_parameter()
-    print(model._modules)
+    # print(model._modules)
     model.initializae_parameter(weight_dict, bias_dict)
 
-    batch_input = read_input('image/image_10.txt')
+    batch_input = read_input('image/image_1000.txt')
     output_list = []
-    
+
+    batch_input = batch_input.to(device)
+    model.to(device)
+
     for single_input in batch_input:
         output = model(single_input)
         result = torch.argmax(output)
-        output_list.append(result)
-        print(f'output_tensor: {output}, result: {result}')
+        if device != 'cpu':
+            result = result.to('cpu')
+        output_list.append(result.item())
 
-    print(output_list)
+    label_file_path = 'label/label.txt'
+    with open(label_file_path, 'r') as f:
+        labels = []
+        for _ in range(len(output_list)):
+            line = f.readline()
+            if not line:
+                break
+            labels.append(line)
+    temp = [line.strip() for line in labels]
+    label_list = [hex_to_int(line) for line in temp]
+
+    # print(output_list)
+    # print(label_list)
+    correctness = check_accuracy(output_list, label_list)
+    print(f'correctness: {correctness}, total: {len(output_list)} accuracy: {(correctness / len(output_list))*100}%')
     return output_list
-    
-
 
 if __name__ == '__main__':
     main()
