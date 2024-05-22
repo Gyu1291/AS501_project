@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 from as501_modules import load_hex_file_to_tensor, hex_to_int
-
+from analyze_tensor import plot_heatmap, summarize_tensor
 
 class MLP(nn.Module):
     def __init__(self):
@@ -22,8 +22,8 @@ class MLP(nn.Module):
     def initializae_parameter(self, weight_dict, bias_dict):
         for name, _ in self._modules.items():
             if name != 'relu':
-                self._modules[name].weight = torch.nn.Parameter(weight_dict[name])
-                self._modules[name].bias = torch.nn.Parameter(bias_dict[name])
+                self._modules[name].weight = nn.Parameter(weight_dict[name].transpose(0, 1))
+                self._modules[name].bias = nn.Parameter(bias_dict[name])
 
 def read_input(file_name):
     tensor = load_hex_file_to_tensor(file_name)
@@ -58,15 +58,28 @@ def main():
     weight_dict, bias_dict = read_parameter()
     # print(model._modules)
     model.initializae_parameter(weight_dict, bias_dict)
+    print(model._modules['fc1'].weight)
+    print(len(model._modules['fc1'].weight[0]))
 
-    batch_input = read_input('image/image_1000.txt')
+    batch_input = read_input('image/image_100.txt')
     output_list = []
 
     batch_input = batch_input.to(device)
     model.to(device)
 
+    #check image
+    #plot_heatmap(batch_input[0].to('cpu').reshape(28, 28), 'sample_image_heatmap')
+
     for single_input in batch_input:
         output = model(single_input)
+
+        # relu_f = nn.ReLU()
+        # x = torch.matmul(single_input, weight_dict['fc1'].to(device)) + bias_dict['fc1'].to(device)
+        # x = relu_f(x)
+        # x = torch.matmul(x, weight_dict['fc2'].to(device)) + bias_dict['fc2'].to(device)
+        # x = relu_f(x)
+        # output = torch.matmul(x, weight_dict['fc3'].to(device)) + bias_dict['fc3'].to(device)    
+
         result = torch.argmax(output)
         if device != 'cpu':
             result = result.to('cpu')
