@@ -25,11 +25,11 @@ def load_hex_file_to_tensor(file_path):
     # Convert list of integers to PyTorch tensor
     tensor = torch.tensor(int_values, dtype=torch.float32)
     if file_path == 'parameter/weight1.txt':
-        tensor = tensor.reshape(784, 128)
+        tensor = tensor.reshape(128, 784)
     elif file_path == 'parameter/weight2.txt':
-        tensor = tensor.reshape(128, 64)
+        tensor = tensor.reshape(64, 128)
     elif file_path == 'parameter/weight3.txt':
-        tensor = tensor.reshape(64, 10)
+        tensor = tensor.reshape(10, 64)
     return tensor
 
 

@@ -26,7 +26,7 @@ class MLP(nn.Module):
     def initializae_parameter(self, weight_dict, bias_dict):
         for name, _ in self._modules.items():
             if name != 'relu':
-                self._modules[name].weight = nn.Parameter(weight_dict[name].transpose(0, 1))
+                self._modules[name].weight = nn.Parameter(weight_dict[name])
                 self._modules[name].bias = nn.Parameter(bias_dict[name])
 
 def read_input(file_name):
@@ -103,6 +103,8 @@ def main():
     # print(output_list)
     # print(label_list)
     correctness = check_accuracy(output_list, label_list)
+    print(weight_dict['fc1'][0])
+    print(len(weight_dict['fc1'][0]))
     print(f'correctness: {correctness}, total: {len(output_list)} accuracy: {(correctness / len(output_list))*100}%')
     print(f'Average input sparsity: {calculate_sparsity(batch_input)*100}%')
     print(f'Average fc1 activation sparsity: {sum(model.fc1_sparsity)/len(model.fc1_sparsity)}%')
