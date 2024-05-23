@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 from as501_modules import load_hex_file_to_tensor, hex_to_int
-from analyze_tensor import plot_heatmap, summarize_tensor
+from analyze_tensor import plot_heatmap, summarize_tensor, calculate_sparsity
 
 class MLP(nn.Module):
     def __init__(self):
@@ -10,12 +10,16 @@ class MLP(nn.Module):
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 10)
         self.relu = nn.ReLU()
+        self.fc1_sparsity = []
+        self.fc2_sparsity = []
 
     def forward(self, x):
         x = self.fc1(x)
         x = self.relu(x)
+        self.fc1_sparsity.append(calculate_sparsity(x)*100)
         x = self.fc2(x)
         x = self.relu(x)
+        self.fc2_sparsity.append(calculate_sparsity(x)*100)
         x = self.fc3(x)
         return x
     
@@ -58,8 +62,8 @@ def main():
     weight_dict, bias_dict = read_parameter()
     # print(model._modules)
     model.initializae_parameter(weight_dict, bias_dict)
-    print(model._modules['fc1'].weight)
-    print(len(model._modules['fc1'].weight[0]))
+    # print(model._modules['fc1'].weight)
+    # print(len(model._modules['fc1'].weight[0]))
 
     batch_input = read_input('image/image_100.txt')
     output_list = []
@@ -100,6 +104,9 @@ def main():
     # print(label_list)
     correctness = check_accuracy(output_list, label_list)
     print(f'correctness: {correctness}, total: {len(output_list)} accuracy: {(correctness / len(output_list))*100}%')
+    print(f'Average input sparsity: {calculate_sparsity(batch_input)*100}%')
+    print(f'Average fc1 activation sparsity: {sum(model.fc1_sparsity)/len(model.fc1_sparsity)}%')
+    print(f'Average fc2 activation sparsity: {sum(model.fc2_sparsity)/len(model.fc2_sparsity)}%')
     return output_list
 
 if __name__ == '__main__':

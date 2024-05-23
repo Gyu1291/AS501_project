@@ -5,9 +5,11 @@ import torch
 from as501_modules import load_hex_file_to_tensor
 import numpy as np
 
-def summarize_tensor(tensor, filename):
+def summarize_tensor(tensor, filename, quant):
     """Summarize the distribution of a PyTorch tensor."""
     # Convert tensor to numpy array for easier manipulation
+    if quant==True:
+        tensor = uniform_quantization(tensor, 4)
     tensor_np = tensor.numpy()
     
     # Compute basic statistics
@@ -30,7 +32,10 @@ def summarize_tensor(tensor, filename):
     plt.title("Tensor Value Distribution")
     plt.xlabel("Value")
     plt.ylabel("Frequency")
-    plt.savefig(f'output/{filename}_summarize.png')
+    if quant==True:
+        plt.savefig(f'output/{filename}_summarize_quant.png')
+    else:
+        plt.savefig(f'output/{filename}_summarize.png')
 
 
 
@@ -41,10 +46,31 @@ def plot_heatmap(tensor, filename):
     plt.savefig(f'output/{filename}_heatmap.png')
 
 
+def calculate_sparsity(tensor):
+    """Calculate the sparsity of a PyTorch tensor."""
+    num_zeros = torch.numel(tensor) - torch.count_nonzero(tensor)
+    total_elements = torch.numel(tensor)
+    sparsity = num_zeros / total_elements
+    return sparsity
+
+def uniform_quantization(tensor, num_bits=4):
+    """Perform uniform quantization on a PyTorch tensor."""
+    # Convert tensor to float32
+    tensor = tensor.float()
+    # Calculate the range of the tensor
+    max_val = torch.max(tensor).item()
+    min_val = torch.min(tensor).item()
+    # Calculate the quantization step
+    # quant_step is reciprocal of scaling factor
+    quant_step = (max_val - min_val) / (2**num_bits - 1)
+    # Quantize the tensor
+    tensor = torch.round(tensor / quant_step) * quant_step
+    return tensor
+
 def main():
-    filename = 'weight1'  # replace with your file path
+    filename = 'weight2'  # replace with your file path
     tensor = load_hex_file_to_tensor(f'parameter/{filename}.txt')
-    summarize_tensor(tensor, filename)
+    summarize_tensor(tensor, filename, quant=False)
     #plot_heatmap(tensor, filename)
 
 if __name__ == '__main__':
