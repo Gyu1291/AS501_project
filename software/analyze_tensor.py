@@ -9,7 +9,7 @@ def summarize_tensor(tensor, filename, quant):
     """Summarize the distribution of a PyTorch tensor."""
     # Convert tensor to numpy array for easier manipulation
     if quant==True:
-        tensor = uniform_quantization(tensor, 4)
+        tensor = uniform_quantization(tensor, 5)
     tensor_np = tensor.numpy()
     
     # Compute basic statistics
@@ -28,6 +28,7 @@ def summarize_tensor(tensor, filename, quant):
     bins = np.arange(flat_tensor.min(), flat_tensor.max() + 2) - 0.5
 
     # Plot histogram
+    plt.clf()
     plt.hist(flat_tensor, bins=bins, edgecolor='black')
     plt.title("Tensor Value Distribution")
     plt.xlabel("Value")
@@ -40,6 +41,7 @@ def summarize_tensor(tensor, filename, quant):
 
 
 def plot_heatmap(tensor, filename):
+    plt.clf()
     plt.imshow(tensor, cmap='hot', interpolation='nearest')
     plt.colorbar()  # 색상 막대 추가
     plt.title("Heatmap of Tensor")
@@ -68,9 +70,9 @@ def uniform_quantization(tensor, num_bits=4):
     return tensor
 
 def main():
-    filename = 'weight2'  # replace with your file path
+    filename = 'weight1'  # replace with your file path
     tensor = load_hex_file_to_tensor(f'parameter/{filename}.txt')
-    summarize_tensor(tensor, filename, quant=False)
+    summarize_tensor(tensor, filename, quant=True)
     #plot_heatmap(tensor, filename)
 
 if __name__ == '__main__':

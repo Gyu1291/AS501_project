@@ -14,7 +14,13 @@ def load_vector(file_path):
     
     # Convert hex strings to integers
     int_values = [hex_to_int(line) for line in lines]
-    return int_values
+    int_values = torch.tensor(int_values, dtype=torch.float32)
+    
+    mean = int_values.mean()
+    std = int_values.std()
+    normalized_tensor = (int_values - mean) / std
+    
+    return normalized_tensor
 
 
 def read_parameter():
@@ -40,8 +46,8 @@ def fully_connected(input, weight, bias, output_size, input_size):
     output = torch.zeros(output_size)
     for i in range(output_size):
         for j in range(input_size):
-            output[i] += input[j] * weight[i*input_size+j] + bias[i]
-        
+            output[i] += input[j] * weight[i*input_size+j]
+        output[i] += bias[i]
         if output[i] < 0:
             output[i] = 0
     return output
@@ -59,7 +65,7 @@ def main():
         x = fully_connected(single_input, weight_dict['fc1'], bias_dict['fc1'], 128, 784)
         x = fully_connected(x, weight_dict['fc2'], bias_dict['fc2'], 64, 128)
         output = fully_connected(x, weight_dict['fc3'], bias_dict['fc3'], 10, 64)
-
+        print(f'output: {output}')
         result = torch.argmax(output)
         output_list.append(result.item())
 
